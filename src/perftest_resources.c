@@ -86,7 +86,7 @@ void init_papi(size_t iterations_no) {
     do { \
         if (papi_initialized) { \
 						fprintf(stderr, "Start measuring cycles Line=%d File=%s\n", __LINE__, __FILE__); \
-            PAPI_start(libfabric_calls_event_set); \
+            PAPI_start(ibverbs_calls_event_set); \
 					} \
     } while (0)
 
@@ -94,7 +94,7 @@ void init_papi(size_t iterations_no) {
     do { \
 			  long long cycles; \
         if (papi_initialized) { \
-            PAPI_stop(libfabric_calls_event_set, &cycles); \
+            PAPI_stop(ibverbs_calls_event_set, &cycles); \
 						fprintf(stderr, "Stop measuring cycles (%s=%ld, index=%s) Line=%d File=%s\n", #index, index, #cycle_array, __LINE__, __FILE__); \
 						if (cycle_array != NULL) \
 							cycle_array[index] = cycles; \
