@@ -102,7 +102,6 @@ void init_papi(size_t iterations_no) {
 							fprintf(stderr, "Cycles measured but cycles array (%s) is NULL\n", #cycle_array); \
 						index++; \
 				} \
-				} \
     } while (0)
 
 /******************************************************************************

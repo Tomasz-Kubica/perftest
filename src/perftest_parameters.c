@@ -4173,7 +4173,7 @@ void print_report_lat (struct perftest_parameters *user_param)
 	if (user_param->count_ibverbs_calls_cycles) {
 		printf("#,send_cycles,receive_cycles\n");
 		for (int i = 0; i < user_param->iters; i++)
-			printf("%d,%lu,%lu\n", i, counted_send_cycles[i], counted_receive_cycles[i]);
+			printf("%d,%llu,%llu\n", i, counted_send_cycles[i], counted_receive_cycles[i]);
 		return;
 	}
 
