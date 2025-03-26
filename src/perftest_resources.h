@@ -1019,4 +1019,14 @@ int rdma_cm_destroy_cma(struct pingpong_context *ctx,
 */
 int error_handler(char *error_message);
 
+// Global variables for measuring cycles
+extern bool papi_initialized;
+extern int ibverbs_calls_event_set;
+extern size_t ibverbs_send_calls_counter;
+extern size_t ibverbs_receive_calls_counter;
+extern long long *counted_send_cycles;
+extern long long *counted_receive_cycles;
+
+void init_papi(size_t iterations_no);
+
 #endif /* PERFTEST_RESOURCES_H */

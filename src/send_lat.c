@@ -437,6 +437,10 @@ int main(int argc, char *argv[])
 
 	} else {
 
+		if (user_param.count_ibverbs_calls_cycles) {
+			init_papi(user_param.iters);
+		}
+
 		/* Post recevie recv_wqes fo current message size */
 		if (ctx_set_recv_wqes(&ctx,&user_param)) {
 			fprintf(stderr," Failed to post receive recv_wqes\n");

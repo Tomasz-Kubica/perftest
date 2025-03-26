@@ -29,6 +29,8 @@
 #include "perftest_resources.h"
 #include "raw_ethernet_resources.h"
 
+#include "papi.h"
+
 static enum ibv_wr_opcode opcode_verbs_array[] = {IBV_WR_SEND,IBV_WR_RDMA_WRITE,IBV_WR_RDMA_WRITE_WITH_IMM,IBV_WR_RDMA_READ};
 static enum ibv_wr_opcode opcode_atomic_array[] = {IBV_WR_ATOMIC_CMP_AND_SWP,IBV_WR_ATOMIC_FETCH_AND_ADD};
 
@@ -37,6 +39,71 @@ static enum ibv_wr_opcode opcode_atomic_array[] = {IBV_WR_ATOMIC_CMP_AND_SWP,IBV
 
 struct perftest_parameters* duration_param;
 struct check_alive_data check_alive_data;
+
+/******************************************************************************
+ * Measuring cycles
+ ******************************************************************************/
+
+// Global variables for measuring cycles
+bool papi_initialized = false;
+int ibverbs_calls_event_set;
+size_t ibverbs_send_calls_counter;
+size_t ibverbs_receive_calls_counter;
+long long *counted_send_cycles = NULL;
+long long *counted_receive_cycles = NULL;
+
+void init_papi(size_t iterations_no) {
+  counted_send_cycles = malloc(sizeof(long long) * iterations_no);
+  counted_receive_cycles = malloc(sizeof(long long) * iterations_no);
+	ibverbs_send_calls_counter = 0;
+	ibverbs_receive_calls_counter = 0;
+
+	// Initialize the PAPI library
+	if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
+		printf("PAPI_library_init failed\n");
+		exit(1);
+	}
+
+	// Create the event set
+	if (PAPI_create_eventset(&ibverbs_calls_event_set) != PAPI_OK) {
+		printf("PAPI_create_eventset failed\n");
+		exit(1);
+	}
+
+	// Add total CPU cycles to the event set
+	if (PAPI_add_event(ibverbs_calls_event_set, PAPI_TOT_CYC) != PAPI_OK) {
+		printf("PAPI_add_event failed\n");
+		exit(1);
+	}
+
+	fprintf(stderr, "PAPI event set created event_set=%d\n", ibverbs_calls_event_set);
+
+	papi_initialized = true;
+}
+
+// Macros for measuring cycles of libfabric calls
+#define START_CYCLES() \
+    do { \
+        if (papi_initialized) { \
+						fprintf(stderr, "Start measuring cycles Line=%d File=%s\n", __LINE__, __FILE__); \
+            PAPI_start(libfabric_calls_event_set); \
+					} \
+    } while (0)
+
+#define STOP_CYCLES(index, cycle_array) \
+    do { \
+			  long long cycles; \
+        if (papi_initialized) { \
+            PAPI_stop(libfabric_calls_event_set, &cycles); \
+						fprintf(stderr, "Stop measuring cycles (%s=%ld, index=%s) Line=%d File=%s\n", #index, index, #cycle_array, __LINE__, __FILE__); \
+						if (cycle_array != NULL) \
+							cycle_array[index] = cycles; \
+						else \
+							fprintf(stderr, "Cycles measured but cycles array (%s) is NULL\n", #cycle_array); \
+						index++; \
+				} \
+				} \
+    } while (0)
 
 /******************************************************************************
  * Beginning
@@ -681,7 +748,10 @@ static inline int post_send_method(struct pingpong_context *ctx, int index,
 		return (*ctx->new_post_send_work_request_func_pointer)(ctx, index, user_param);
 	#endif
 	struct ibv_send_wr 	*bad_wr = NULL;
-	return ibv_post_send(ctx->qp[index], &ctx->wr[index*user_param->post_list], &bad_wr);
+	START_CYCLES();
+	int ret = ibv_post_send(ctx->qp[index], &ctx->wr[index*user_param->post_list], &bad_wr);
+	STOP_CYCLES(ibverbs_send_calls_counter, counted_send_cycles);
+	return ret;
 
 }
 
@@ -4997,7 +5067,10 @@ int run_iter_lat_send(struct pingpong_context *ctx,struct perftest_parameters *u
 							}
 
 						} else {
-							if (ibv_post_recv(ctx->qp[wc.wr_id], &ctx->rwr[wc.wr_id], &bad_wr_recv)) {
+							START_CYCLES();
+							int ret = ibv_post_recv(ctx->qp[wc.wr_id], &ctx->rwr[wc.wr_id], &bad_wr_recv);
+							STOP_CYCLES(ibverbs_receive_calls_counter, counted_receive_cycles);
+							if (ret) {
 								fprintf(stderr, "Couldn't post recv: rcnt=%lu\n", rcnt);
 								return 15;
 							}

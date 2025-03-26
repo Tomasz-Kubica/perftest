@@ -2417,6 +2417,10 @@ int parser(struct perftest_parameters *user_param,char *argv[], int argc)
 	static int recv_post_list_flag = 0;
 	static int payload_flag = 0;
 	static int use_write_with_imm_flag = 0;
+
+  // Flag for counting ibverbs calls cycles
+	static int count_ibverbs_calls_cycles = 0;
+
 	#ifdef HAVE_SRD_WITH_UNSOLICITED_WRITE_RECV
 	static int unsolicited_write_flag = 0;
 	#endif
@@ -2524,6 +2528,10 @@ int parser(struct perftest_parameters *user_param,char *argv[], int argc)
 			{ .name = "run_infinitely",	.has_arg = 0, .flag = &run_inf_flag, .val = 1 },
 			{ .name = "report_gbits",	.has_arg = 0, .flag = &report_fmt_flag, .val = 1},
 			{ .name = "use-srq",		.has_arg = 0, .flag = &srq_flag, .val = 1},
+
+			// Flag for counting ibverbs calls cycles
+			{ .name = "count-cycles",		.has_arg = 0, .flag = &count_ibverbs_calls_cycles, .val = 1},
+
 			#ifdef HAVE_TD_API
 			{ .name = "no_lock",		.has_arg = 0, .flag = &no_lock_flag, .val = 1},
 			#endif
@@ -3308,6 +3316,10 @@ int parser(struct perftest_parameters *user_param,char *argv[], int argc)
 
 	if (srq_flag) {
 		user_param->use_srq = 1;
+	}
+
+	if (count_ibverbs_calls_cycles) {
+		user_param->count_ibverbs_calls_cycles = 1;
 	}
 
 	#ifdef HAVE_TD_API
@@ -4156,6 +4168,14 @@ void write_report_lat_to_file(int out_json_fd, struct perftest_parameters *user_
 #define LAT_MEASURE_TAIL (2)
 void print_report_lat (struct perftest_parameters *user_param)
 {
+
+	// If we count cycles then ignore everything else and just print the cycles as CSV
+	if (user_param->count_ibverbs_calls_cycles) {
+		printf("#,send_cycles,receive_cycles\n");
+		for (int i = 0; i < user_param->iters; i++)
+			printf("%d,%lu,%lu\n", i, counted_send_cycles[i], counted_receive_cycles[i]);
+		return;
+	}
 
 	int i;
 	int rtt_factor;

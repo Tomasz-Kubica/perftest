@@ -152,3 +152,5 @@ raw_ethernet_lat_SOURCES =
 raw_ethernet_lat_LDADD =
 
 endif
+
+AM_CFLAGS += -lpapi

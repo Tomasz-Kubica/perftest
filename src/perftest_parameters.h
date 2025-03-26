@@ -646,6 +646,8 @@ struct perftest_parameters {
 	int				use_ddp;
 	int				no_ddp;
 	int				connectionless;
+
+	int 			count_ibverbs_calls_cycles;
 };
 
 struct report_options {

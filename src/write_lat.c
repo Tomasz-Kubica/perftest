@@ -48,6 +48,8 @@
 #include "perftest_resources.h"
 #include "perftest_communication.h"
 
+#include "papi.h"
+
 /******************************************************************************
  *
  ******************************************************************************/
@@ -294,6 +296,10 @@ int main(int argc, char *argv[])
 		}
 
 	} else {
+
+		if (user_param.count_ibverbs_calls_cycles) {
+			init_papi(user_param.iters);
+		}
 
 		if (user_param.verb == WRITE_IMM) {
 			/* Post recevie recv_wqes fo current message size */
