@@ -30,6 +30,8 @@
 # SOFTWARE.
 #
 
+LIBS = -lpapi
+
 ACLOCAL_AMFLAGS= -I m4
 AUTOMAKE_OPTIONS= subdir-objects
 
@@ -152,5 +154,3 @@ raw_ethernet_lat_SOURCES =
 raw_ethernet_lat_LDADD =
 
 endif
-
-AM_CFLAGS += -lpapi
