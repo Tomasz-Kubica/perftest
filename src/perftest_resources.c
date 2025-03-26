@@ -46,7 +46,7 @@ struct check_alive_data check_alive_data;
 
 // Global variables for measuring cycles
 bool papi_initialized = false;
-int ibverbs_calls_event_set;
+int ibverbs_calls_event_set = PAPI_NULL;
 size_t ibverbs_send_calls_counter;
 size_t ibverbs_receive_calls_counter;
 long long *counted_send_cycles = NULL;
