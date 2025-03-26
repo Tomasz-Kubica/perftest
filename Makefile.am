@@ -30,7 +30,7 @@
 # SOFTWARE.
 #
 
-LIBS = -libverbs -lpapi
+# LIBS = -libverbs -lpapi
 
 ACLOCAL_AMFLAGS= -I m4
 AUTOMAKE_OPTIONS= subdir-objects
