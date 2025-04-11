@@ -4215,9 +4215,9 @@ void print_report_lat (struct perftest_parameters *user_param)
 
 	cycles_rtt_quotient = cycles_to_units * rtt_factor;
 	if (user_param->r_flag->unsorted) {
-		printf("#, %s\n", units);
+		printf("#,%s\n", units);
 		for (i = 0; i < measure_cnt; ++i)
-			printf("%d, %g\n", i + 1, delta[i] / cycles_rtt_quotient);
+			printf("%d,%g\n", i + 1, delta[i] / cycles_rtt_quotient);
 	}
 
 	qsort(delta, measure_cnt, sizeof *delta, cycles_compare);
