@@ -48,6 +48,8 @@
 #include "perftest_parameters.h"
 #include "perftest_communication.h"
 
+#include "papi.h"
+
 /******************************************************************************
  *
  ******************************************************************************/
@@ -309,6 +311,11 @@ int main(int argc, char *argv[])
 			user_param.test_type == ITERATIONS ? print_report_lat(&user_param) : print_report_lat_duration(&user_param);
 		}
 	} else {
+		
+    if (user_param.count_ibverbs_calls_cycles) {
+			init_papi(user_param.iters);
+		}
+
 		if(run_iter_lat(&ctx,&user_param)){
 			error = 17;
 			goto free_mem;
